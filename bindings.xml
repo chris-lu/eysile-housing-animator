@@ -1,0 +1,12 @@
+<Bindings>
+	<Layer name="SI_KEYBINDINGS_LAYER_HOUSING_EDITOR" allowFallthrough="false">
+		<Category name="EysilesHousingAnimator">
+			<Action name="EysilesHousingAnimator_KEY_ADD_STACK">
+				<Down>EysilesHousingAnimator.addToStack()</Down>
+			</Action>
+			<Action name="EysilesHousingAnimator_KEY_REMOVE_STACK">
+				<Down>EysilesHousingAnimator.getItemList()</Down>
+			</Action>
+		</Category>
+	</Layer>
+</Bindings>
