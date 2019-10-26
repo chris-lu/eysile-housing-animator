@@ -1,39 +1,39 @@
------ Eysile's HousingTools Animation:s -----
+----- Eysile's Housing Animator -----
 
 # Load animation from a template
-/ea load [name]
+/eha load [name]
 
 ie:
-/ea load akatosh
+/eha load akatosh
 
 
 # Create an animation from the latest X items piled to the stack
-/ea create [name] [X]
+/eha create [name] [X]
 
 ie:
-/ea create doors 4
+/eha create doors 4
 
 
 # Add X other keyframes to the stack to an animation at the Y position
-/ea replace [name] [X] [Y]
+/eha replace [name] [X] [Y]
 
 ie:
-/ea replace doors 2 3
+/eha replace doors 2 3
 
 
 # Delete an animation
-/ea delete [name]
+/eha delete [name]
 
 ie:
-/ea delete doors
+/eha delete doors
 
 
 # Empty the item stack
-/ea empty
+/eha empty
 
 
 # Set an parameter from an animation
-/ea set [name] [variable] [value]
+/eha set [name] [variable] [value]
 
 * [variable] could be:
   trigger [ID]       The ID of a collectible to play when playing / toggling the animation
@@ -52,51 +52,51 @@ ie:
   inoutelastic, outinelastic, inback, outback, inoutback, outinback, outbounce, inbounce, inoutbounce, outinbounce
 
 ie:
-/ea set doors ease inoutcubic
+/eha set doors ease inoutcubic
 
 
 # Reset an animation to its beginning
-/ea reset [name]
+/eha reset [name]
 
 ie:
-/ea reset doors
+/eha reset doors
 
 
 # Play an animation from its beginning
-/ea play [name]
+/eha play [name]
 
 ie:
-/ea play doors
+/eha play doors
 
 
 # Stop a playing animation
-/ea stop [name]
+/eha stop [name]
 
 ie:
-/ea stop doors
+/eha stop doors
 
 
 # Toggle an animation from the beginning to the end / from the end to the beginning
-/ea toggle [name]
+/eha toggle [name]
 
 ie:
-/ea toggle doors
+/eha toggle doors
 
 
 # List animations
-/ea list [name / all]
+/eha list [name / all]
 
 ie:
-/ea list all
+/eha list all
 
 
 # Save the scene to the user settings
-/ea save
+/eha save
 
 
 # Reload the scene saved scenes
-/ea reload
+/eha reload
 
 
 # Reload the scene
-/ea clear
+/eha clear
