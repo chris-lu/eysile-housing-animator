@@ -134,8 +134,9 @@ function EHA.SlashCommand( commandArgs )
   if options[1] == "set-force" then for n, a in pairs( animations ) do a[options[3]] = options[4] end end
   if options[1] == "reset"   then for n, a in pairs( animations ) do EHAAnimation:reset(a)  end end
   if options[1] == "play"    then for n, a in pairs( animations ) do EHAAnimation:start(EHA.trigger(a))  end end
-  if options[1] == "stop"    then for n, a in pairs( animations ) do EHAAnimation:stop(a)  end end
-  if options[1] == "activate"  then for n, a in pairs( animations ) do EHAInteract.activate(a, tonumber((options[3] or "on") ~= "on")) end end
+  if options[1] == "stop"    then for n, a in pairs( animations ) do EHAAnimation:stop(a, true)  end end
+  if options[1] == "random"  then for n, a in pairs( animations ) do EHAAnimation:random(a)  end end
+  if options[1] == "activate"  then for n, a in pairs( animations ) do EHAInteract.activate(a, ((options[3] or "on") ~= "on") and 1 or 0) end end
   if options[1] == "actoggle"  then for n, a in pairs( animations ) do EHAInteract.toggle(a) end end
   if options[1] == "toggle"  then for n, a in pairs( animations ) do EHAAnimation:toggle(EHA.trigger(a)) end end
   if options[1] == "list"    then for n, a in pairs( animations ) do d(n, a) end end

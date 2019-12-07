@@ -22,16 +22,43 @@ function EHAAnimation:reset(a)
     local l = f[a.keyframe]
     if l then
       HousingEditorRequestChangePositionAndOrientation(StringToId64(l.id), l.x, l.y, l.z, l.pitch, l.yaw, l.roll)
-      HousingEditorRequestChangeState( StringToId64(l.id), l.state )
+      EHAInteract.setState( l.id, l.state )
     end
   end
   a.speed = math.abs(a.speed)
 end
 
-function EHAAnimation:stop(a) 
+function EHAAnimation:random(a) 
+  EHA.d("Randomize initial objects")
+  local shuffled = {}
+  
+  -- Randomize positions
+  for furnitureId, f in pairs(a.furnitures) do
+    -- Need a deep copy here
+    local l = EHAFurniture:deepcopy(f[1])
+	  local pos = math.random(1, #shuffled+1)
+	  table.insert(shuffled, pos, l)
+  end
+
+  -- Reaffect coordinates
+  local i = 1;
+  for furnitureId, f in pairs(a.furnitures) do
+    local l = f[1]
+    if l then
+      l.x, l.y, l.z, l.pitch, l.yaw, l.roll = shuffled[i].x, shuffled[i].y, shuffled[i].z, shuffled[i].pitch, shuffled[i].yaw, shuffled[i].roll
+    end
+    
+    i = i + 1
+  end
+  
+  -- Reset scene
+  EHAAnimation:reset(a)
+end
+
+function EHAAnimation:stop(a, force) 
   EHA.d("Stop playing")
   a.plays = false 
-  if a.chain then
+  if not force and a.chain then
     if a.speed > 0 then 
       EHA.animationStart(a.chain)
     else 
@@ -195,29 +222,35 @@ function EHAAnimation:dotransition(a, furnitureFrom, furnitureTo, duration)
   -- local speed = math.sqrt(math.pow(furnitureTo.x - furnitureFrom.x, 2) + math.pow(furnitureTo.y - furnitureFrom.y, 2)+math.pow(furnitureTo.z - furnitureFrom.z, 2)) / duration
   -- EHA.d("Speed: " .. tostring(speed))
   
+  if furnitureFrom.duration ~= nil then
+    duration = furnitureFrom.duration
+  end
+  
+  local frame = math.min(a.frame, duration)
+  
   if not a.rotate then
     HousingEditorRequestChangePositionAndOrientation(StringToId64(furnitureFrom.id), 
-      f(a.frame, furnitureFrom.x, furnitureTo.x - furnitureFrom.x, duration),
-      f(a.frame, furnitureFrom.y, furnitureTo.y - furnitureFrom.y, duration),
-      f(a.frame, furnitureFrom.z, furnitureTo.z - furnitureFrom.z, duration),
+      f(frame, furnitureFrom.x, furnitureTo.x - furnitureFrom.x, duration),
+      f(frame, furnitureFrom.y, furnitureTo.y - furnitureFrom.y, duration),
+      f(frame, furnitureFrom.z, furnitureTo.z - furnitureFrom.z, duration),
       furnitureFrom.pitch,
       furnitureFrom.yaw,
       furnitureFrom.roll
     )
   else 
     HousingEditorRequestChangePositionAndOrientation (StringToId64(furnitureFrom.id), 
-      f(a.frame, furnitureFrom.x, furnitureTo.x - furnitureFrom.x, duration),
-      f(a.frame, furnitureFrom.y, furnitureTo.y - furnitureFrom.y, duration),
-      f(a.frame, furnitureFrom.z, furnitureTo.z - furnitureFrom.z, duration),
-      f(a.frame, furnitureFrom.pitch, EHAMath.normalize(furnitureTo.pitch - furnitureFrom.pitch), duration),
-      f(a.frame, furnitureFrom.yaw,   EHAMath.normalize(furnitureTo.yaw   - furnitureFrom.yaw),   duration),
-      f(a.frame, furnitureFrom.roll,   EHAMath.normalize(furnitureTo.roll - furnitureFrom.roll),  duration)
+      f(frame, furnitureFrom.x, furnitureTo.x - furnitureFrom.x, duration),
+      f(frame, furnitureFrom.y, furnitureTo.y - furnitureFrom.y, duration),
+      f(frame, furnitureFrom.z, furnitureTo.z - furnitureFrom.z, duration),
+      f(frame, furnitureFrom.pitch, EHAMath.normalize(furnitureTo.pitch - furnitureFrom.pitch), duration),
+      f(frame, furnitureFrom.yaw,   EHAMath.normalize(furnitureTo.yaw   - furnitureFrom.yaw),   duration),
+      f(frame, furnitureFrom.roll,   EHAMath.normalize(furnitureTo.roll - furnitureFrom.roll),  duration)
     )
   end
   
-  if(a.frame == 0) then
+  if(frame == 0) then
     EHAInteract.activate(a, furnitureFrom.state)
-  elseif(furnitureFrom.state ~= furnitureTo.state and a.frame == duration) then
+  elseif(furnitureFrom.state ~= furnitureTo.state and frame == duration) then
     EHAInteract.activate(a, furnitureTo.state)
   end
   

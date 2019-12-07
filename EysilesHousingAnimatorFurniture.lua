@@ -9,7 +9,6 @@ function EHAFurniture:new(furnitureId)
   o.pitch, o.yaw, o.roll = HousingEditorGetFurnitureOrientation(StringToId64(furnitureId))
   o.state = GetPlacedHousingFurnitureCurrentObjectStateIndex(StringToId64(furnitureId))
   o.duration = nil
-  
   return o
 end
 
