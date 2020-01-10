@@ -32,10 +32,11 @@ EysilesHousingAnimatorInteract.lua
 EysilesHousingAnimatorAnimation.lua
 EysilesHousingAnimatorMath.lua
 EysilesHousingAnimatorSettings.lua
-EysilesHousingAnimatorCustoms.lua
-templates/akatosh.lua
+EysilesHousingAnimatorBackup.lua
 templates/arene.lua
-templates/dementia.lua
-templates/mania.lua
+templates/valentin.lua
+#templates/akatosh.lua
+#templates/dementia.lua
+#templates/mania.lua
 
 bindings.xml

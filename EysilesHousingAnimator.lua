@@ -12,10 +12,15 @@ EysilesHousingAnimator = {
     
     templates = {},
     settings = {},
+    furnitures = {},
+    animations = {},
+    interacts = {},
     
     defaultSettings = {
       refreshRate = 100,
-      scenes = {},
+      animations = {},
+      interacts = {},
+      backup = {},
       variableVersion = 1,
       debug = false,
     }
@@ -25,10 +30,24 @@ EysilesHousingAnimator = {
 local EHA = EysilesHousingAnimator
 local MAX_STACK = 50
 local houseId = 0
-local scene = {}
-local furnitures = {}
 local latestFurnitureId = nil
 local latestCollectible = nil
+
+
+function EHA.deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[EHA.deepcopy(orig_key)] = EHA.deepcopy(orig_value)
+        end
+        setmetatable(copy, EHA.deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
 
 function EHA.OnAddOnLoaded(event, addonName)
   if addonName ~= EHA.name then return end
@@ -91,70 +110,37 @@ function EHA.removeFromStack()
   EHA.unstackFurniture()
 end 
   
-function EHA.OnUpdate() 
-  if GetHousingEditorMode() ~= HOUSING_EDITOR_MODE_DISABLED then
-    return
-  end
-
-  for name, a in pairs( scene ) do    
-    if a.plays then 
-      EHAAnimation:play(a)
-    end
-  end
-end
-
 function EHA.SlashCommand( commandArgs )
   local options = { }
-  local searchResult = { string.match( commandArgs, "^((%S*)%s*)*$" ) }
 
   for w in commandArgs:gmatch("%S+") do
-    options[ #options + 1 ] = string.lower( w )
+    options[ #options + 1 ] = string.gsub(string.lower( w ), '+', ' ')
   end
-  
-  local animations = {}
-  local name = options[2]
-  
-  if name == "all" then 
-    animations = scene
-  elseif scene[name] then
-    animations[name] = scene[name]
-  end
-  
-  -- Templates commands
-  if options[1] == "load"  then EHA.loadTemplates(name) end
-  
-  -- Stack commands
-  if options[1] == "create"  then EHA.animationCreate(name, tonumber(options[3]) or 2) end
-  if options[1] == "replace" then EHA.animationReplaceKeyframe(name, tonumber(options[3]) or 1, tonumber(options[4]) or 1) end
-  if options[1] == "delete"  then EHA.animationDelete(name) end
-  if options[1] == "empty"   then EHA.stackEmpty() end
-  
-  -- Animation: commands
-  if options[1] == "set"     then for n, a in pairs( animations ) do EHAAnimation:setParameter(a, options[3], options[4], options[5]) end end
-  if options[1] == "set-force" then for n, a in pairs( animations ) do a[options[3]] = options[4] end end
-  if options[1] == "reset"   then for n, a in pairs( animations ) do EHAAnimation:reset(a)  end end
-  if options[1] == "play"    then for n, a in pairs( animations ) do EHAAnimation:start(EHA.trigger(a))  end end
-  if options[1] == "stop"    then for n, a in pairs( animations ) do EHAAnimation:stop(a, true)  end end
-  if options[1] == "random"  then for n, a in pairs( animations ) do EHAAnimation:random(a)  end end
-  if options[1] == "activate"  then for n, a in pairs( animations ) do EHAInteract.activate(a, ((options[3] or "on") ~= "on") and 1 or 0) end end
-  if options[1] == "actoggle"  then for n, a in pairs( animations ) do EHAInteract.toggle(a) end end
-  if options[1] == "toggle"  then for n, a in pairs( animations ) do EHAAnimation:toggle(EHA.trigger(a)) end end
-  if options[1] == "list"    then for n, a in pairs( animations ) do d(n, a) end end
 
   -- Scene commands
   if options[1] == "save"    then EHA.sceneSave() end
   if options[1] == "reload"  then EHA.sceneReload() end
   if options[1] == "clear"   then EHA.sceneClear() end
+  if options[1] == "empty"   then EHA.stackEmpty() end
 
   if options[1] == "debug"   then EHA.settings.debug = not EHA.settings.debug end
+  
+  -- Templates commands
+  if options[1] == "load"  then EHA.loadTemplates(options[2]) end
 
+  if options[1] == "animation" or options[1] == "a"  then EHAAnimation.SlashCommand( options ) end
+  if options[1] == "trigger" or options[1] == "t"  then EHAInteract.SlashCommand( options ) end
 end
 
 function EHA.loadTemplates(name)
   if EHA.templates[name] then
-    for n, s in pairs( EHA.templates[name] ) do
-      scene[n] = EHAFurniture:deepcopy(s)
-      EHA.d("Loading animations " .. n)
+    for n, s in pairs( EHA.templates[name].animations ) do
+      EHA.animations[n] = EHA.deepcopy(s)
+      EHA.d("Loading animation " .. n)
+    end
+    for n, s in pairs( EHA.templates[name].interacts ) do
+      EHA.interacts[n] = EHA.deepcopy(s)
+      EHA.d("Loading trigger " .. n)
     end
     d("Loading animation from template " .. name)
   else
@@ -163,71 +149,26 @@ function EHA.loadTemplates(name)
 end
 
 function EHA.sceneSave()
-  EHA.settings.scenes[houseId] = scene
+  EHA.settings.animations[houseId] = EHA.animations
+  EHA.settings.interacts[houseId] = EHA.interacts
   d("Scene saved")
 end
 
 function EHA.sceneReload()
-  scene = EHA.settings.scenes[houseId]
+  EHA.animations = EHA.settings.animations[houseId]
+  EHA.interacts = EHA.settings.interacts[houseId]
   d("Scene reloaded")
 end
 
 function EHA.sceneClear()
-  scene = {}
+  EHA.animations = {}
+  EHA.interacts = {}
   d("Scene cleared")
 end
 
 function EHA.stackEmpty()
-  furnitures = {}
+  EHA.furnitures = {}
   d("Furniture stack cleared")
-end
-
-function EHA.animationStart(name)
-  if(scene[name]) then
-    EHAAnimation:start(EHA.trigger(scene[name]))
-  end
-end
-
-
-function EHA.animationToggle(name)
-  if(scene[name]) then
-    EHAAnimation:toggle(EHA.trigger(scene[name]))
-  end
-end
-
-function EHA.animationDelete(name)
-  scene[name] = nil 
-  d("Animation: " .. name .. " deleted")
-end
-
-function EHA.animationCreate(name, number)
-  local fs = {}
-  local i = number
-  for _, f in ipairs( furnitures ) do
-      fs[i] = f
-      i = i - 1
-
-      if i < 1 then break end
-  end
-  local anim = EHAAnimation:new()
-  EHAAnimation:addFurnitures(anim, fs)
-  EHAAnimation:reset(anim)
-  scene[name] = anim
-  
-  d("Saved animation to " .. name .. " with " .. #fs .. " keyframes")  
-end
-
-function EHA.animationReplaceKeyframe(name, number, pos)
-  local i = number
-  for _, f in ipairs( furnitures ) do
-      EHAAnimation:setFurniture(scene[name], pos, f)
-      i = i - 1
-    pos = pos + 1
-      
-      if i < 1 then break end
-  end
-  
-  d("Replaced " .. number .. " keyframe in " .. name)  
 end
 
 function EHA.stackFurniture(furnitureId) 
@@ -237,25 +178,25 @@ function EHA.stackFurniture(furnitureId)
   
     fs[1] = EHAFurniture:new(furnitureId)
   
-    for _, f in ipairs( furnitures ) do
+    for _, f in ipairs( EHA.furnitures ) do
       fs[i] = f
       i = i + 1
       
       if i > MAX_STACK then break end
     end
   
-    furnitures = fs
+    EHA.furnitures = fs
   
-    d("Stacked 1 furniture, total " .. #furnitures)
+    d("Stacked 1 furniture, total " .. #EHA.furnitures)
   end
 end
 
 function EHA.unstackFurniture() 
   local fs = {}
   local i = 2
-  local furniture = furnitures[1]
+  local furniture = EHA.furnitures[1]
   
-  for _, f in ipairs( furnitures ) do
+  for _, f in ipairs( EHA.furnitures ) do
     fs[i - 1] = f
     fs[i] = nil
       i = i + 1
@@ -263,7 +204,7 @@ function EHA.unstackFurniture()
       if i > MAX_STACK then break end
   end
   
-  d("Unstack 1 furniture, total " .. #furnitures)
+  d("Unstack 1 furniture, total " .. #EHA.furnitures)
   return furniture  
 end
 
@@ -272,7 +213,7 @@ function EHA.removeFurniture(furnitureId)
   local i = 1
   
   -- Remove all furniture, keep MAX_STACK
-  for _, f in ipairs( furnitures ) do
+  for _, f in ipairs( EHA.furnitures ) do
     if f.id ~= furnitureId then
       fs[i] = f
       i = i + 1
@@ -281,19 +222,25 @@ function EHA.removeFurniture(furnitureId)
     if i > MAX_STACK then break end
   end
   
-  furnitures = fs
+  EHA.furnitures = fs
   
-  d("Removed 1 furniture, total " .. #furnitures)
+  d("Removed 1 furniture, total " .. #EHA.furnitures)
 end
 
--- https://esoitem.uesp.net/viewlog.php?record=collectibles
-function EHA.trigger(animation)
-  if animation.trigger and animation.trigger ~= 0 then
-    EHA.d("Triggerring collectible " .. animation.trigger)
-    UseCollectible(animation.trigger)
+function EHA.triggerCreate(name, number)
+  local fs = {}
+  local i = number
+  for _, f in ipairs( EHA.furnitures ) do
+      fs[i] = f
+      i = i - 1
+
+      if i < 1 then break end
   end
+  local trigger = EHATrigger:new()
+  EHATrigger.addFurnitures(trigger, fs)
+  EHA.interacts[name] = trigger
   
-  return animation
+  d("Saved trigger to " .. name .. " with " .. #fs .. " keyframes")  
 end
 
 function EHA.getItemList() 
@@ -324,10 +271,11 @@ function EHA.init()
   houseId = GetCollectibleIdForHouse(currentHouseId)
   
   if houseId and HasPermissionSettingForCurrentHouse(HOUSE_PERMISSION_SETTING_MOVE_FURNITURE) then 
-    scene = EHA.settings.scenes[houseId] or {}
+    EHA.animations = EHA.settings.animations[houseId] or {}
+    EHA.interacts = EHA.settings.interacts[houseId] or {}
   
-    EVENT_MANAGER:RegisterForUpdate(EHA.name, tonumber(EHA.settings.refreshRate) or 100, EHA.OnUpdate)
---  EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_COMMAND_RESULT, EHA.DebugEditorCommand)
+    EVENT_MANAGER:RegisterForUpdate(EHA.name .. 'Animations', tonumber(EHA.settings.refreshRate) or 100, EHAAnimation.OnUpdate)
+    EVENT_MANAGER:RegisterForUpdate(EHA.name .. 'Interact', tonumber(EHA.settings.refreshRate) or 100, EHAInteract.OnUpdate)
     EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_LINK_TARGET_CHANGED, EHA.DebugEditorLink)
     EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_MODE_CHANGED, EHA.DebugEditorMode)
     EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_REQUEST_RESULT, EHA.DebugEditorRequest)
@@ -335,12 +283,14 @@ function EHA.init()
     EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_HOUSING_FURNITURE_PLACED, EHA.FurniturePlaced)
     EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_HOUSING_FURNITURE_REMOVED, EHA.FurnitureRemoved)
     EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_HOUSING_PLAYER_INFO_CHANGED, EHA.DebugPlayerInfo)
-    EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_CLIENT_INTERACT_RESULT, EHA.ClientInteractResult)
-
+    EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_IMPACTFUL_HIT, function(event, ...) d('EVENT_IMPACTFUL_HIT') end)
+--  EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_NO_INTERACT_TARGET, function(event, ...) d('EVENT_NO_INTERACT_TARGET') end)
+--  EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_COMMAND_RESULT, EHA.DebugEditorCommand)
+--  EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_CLIENT_INTERACT_RESULT, EHA.ClientInteractResult)
+--  EVENT_MANAGER:RegisterForEvent(EHA.name, EVENT_COLLECTIBLE_USE_RESULT, EHA.CollectibleUseResult)
     EHA.d("Eysile's HousingTools is now active")
   else 
     EVENT_MANAGER:UnregisterForUpdate(EHA.name)
---  EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_COMMAND_RESULT)
     EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_LINK_TARGET_CHANGED)
     EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_MODE_CHANGED)
     EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_REQUEST_RESULT)
@@ -348,9 +298,11 @@ function EHA.init()
     EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_HOUSING_FURNITURE_PLACED)
     EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_HOUSING_FURNITURE_REMOVED)
     EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_HOUSING_PLAYER_INFO_CHANGED)
-    EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_CLIENT_INTERACT_RESULT)
-
-    EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_COLLECTIBLE_USE_RESULT)
+    EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_IMPACTFUL_HIT)
+--  EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_NO_INTERACT_TARGET)
+--  EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_CLIENT_INTERACT_RESULT)
+--  EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_HOUSING_EDITOR_COMMAND_RESULT)
+--  EVENT_MANAGER:UnregisterForEvent(EHA.name, EVENT_COLLECTIBLE_USE_RESULT)
     EHA.d("Eysile's HousingTools is now Inactive")
   end
 end

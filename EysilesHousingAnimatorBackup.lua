@@ -1,32 +1,7 @@
-function EysilesHousingAnimator.displayClosest()
-	local id = GetNextPlacedHousingFurnitureId()
-  local pX, pY, pZ, _ = GetPlayerWorldPositionInHouse()
-  local objects = {}
+local EHA = EysilesHousingAnimator
+EHABackup = {}
 
-	while id do
-    local itemName, _, furnitureDataId = GetPlacedHousingFurnitureInfo(id)
-    local furniture = EHAFurniture:new(Id64ToString(id))
-    local distance = math.sqrt( ( ( pX - furniture.x ) ^ 2 ) + ( ( pY - furniture.y ) ^ 2 ) + ( ( pZ - furniture.z ) ^ 2 ) )
-    
-    if distance < 20000 then
-      local count = objects[itemName] or 0
-      objects[itemName] = count + 1
-      -- d(itemName .. ": " .. tostring(distance) .. "m")
-    end
-
-    --HousingEditorRequestRemoveFurniture    
-		id = GetNextPlacedHousingFurnitureId( id )
-	end
-  
-  for name, count in pairs(objects) do
-    d(count .. "x " .. name)
-  end
-  
-  EHA.settings.backup_maison_list = objects
-end
-
--- 
-function EysilesHousingAnimator.listClosest()
+function EHABackup.listClosest(limit)
   local id = GetNextPlacedHousingFurnitureId()
   local pX, pY, pZ, _ = GetPlayerWorldPositionInHouse()
   local backup = {}
@@ -36,30 +11,33 @@ function EysilesHousingAnimator.listClosest()
     local furniture = EHAFurniture:new(Id64ToString(id))
     local distance = math.sqrt( ( ( pX - furniture.x ) ^ 2 ) + ( ( pY - furniture.y ) ^ 2 ) + ( ( pZ - furniture.z ) ^ 2 ) )
     
-    if distance < 20000 then
+    if distance < (limit or 20000) then
       furniture.name = itemName
       furniture.dataId = furnitureDataId
       
       table.insert(backup, furniture)
+      d('Found ' .. itemName .. ' with ID ' .. Id64ToString(id)) 
     end
 
     --HousingEditorRequestRemoveFurniture    
 		id = GetNextPlacedHousingFurnitureId( id )
 	end
   
-  EHA.settings.backup_maison = backup
+  if backup then 
+    EHA.settings.backup = backup
+  end
 end
 
 
 -- Replace all Haies
-function EysilesHousingAnimator.placeClosest()
+function EHABackup.placeClosest(limit)
   EHAPlacedFurnitures = {}
   EHACurrentId = GetNextPlacedHousingFurnitureId()
-  EysilesHousingAnimator.placeClosestNext()
+  EHABackup.placeClosestNext(limit)
 end
 
-function EysilesHousingAnimator.placeClosestNext()
-  local backup = EHA.settings.backup_maison or {}
+function EHABackup.placeClosestNext(limit)
+  local backup = EHA.settings.backup or {}
 	local id = EHACurrentId
   local delay = 100
   local pX, pY, pZ, _ = GetPlayerWorldPositionInHouse()
@@ -69,13 +47,13 @@ function EysilesHousingAnimator.placeClosestNext()
     local furniture = EHAFurniture:new(Id64ToString(id))
     local distance = math.sqrt( ( ( pX - furniture.x ) ^ 2 ) + ( ( pY - furniture.y ) ^ 2 ) + ( ( pZ - furniture.z ) ^ 2 ) )
     
-    if distance < 20000 then
+    if distance < (limit or 20000) then
       local found = false
       local p = EHAPlacedFurnitures[furnitureDataId] or 0
       for i, f in pairs(backup) do
         if(p < i and f.dataId == furnitureDataId) then
           found = true
-          d('Furniture ' .. itemName .. ' is matching, placing it.')
+          EHA.d('Furniture ' .. itemName .. ' is matching, placing it.')
           EHAPlacedFurnitures[furnitureDataId] = i
           
           HousingEditorRequestChangePositionAndOrientation (id,  f.x, f.y, f.z, f.pitch, f.yaw, f.roll)
@@ -83,35 +61,28 @@ function EysilesHousingAnimator.placeClosestNext()
         end
       end
       if found == false then
-        d(itemName .. " was not found ?")
+        EHA.d(itemName .. " was not found ?")
       end
     else
-      --d(itemName .. " won't be placed")
+      -- EHA.d(itemName .. " won't be placed")
       delay = 0
     end
     
     EHACurrentId = GetNextPlacedHousingFurnitureId( id )
     
-    zo_callLater( EysilesHousingAnimator.placeClosestNext, delay )
+    zo_callLater( function() EHABackup.placeClosestNext(limit) end, delay )
 	end
 end
 
 
 -- Backup all Haies
-function EysilesHousingAnimator.listAll()
+function EHABackup.listAll(name)
   local backup = {}
 
 	local id = GetNextPlacedHousingFurnitureId()
 	while id do
-    -- Haie, verte haute  (2955)
-    -- Haie, longue en bataille (5079)
-    -- Haie, en bataille (5078)
-    -- Haie, mur arqué (3146)
-    -- Haie, verte courte (2953)
-    -- Haie, petit fer à cheval (2952)
-
     local itemName, _, furnitureDataId = GetPlacedHousingFurnitureInfo(id)
-    if string.match(itemName, "Haie") then
+    if string.match(itemName, name) then
       local furniture = EHAFurniture:new(Id64ToString(id))
       furniture.name = itemName
       furniture.dataId = furnitureDataId
@@ -123,22 +94,25 @@ function EysilesHousingAnimator.listAll()
 		id = GetNextPlacedHousingFurnitureId( id )
 	end
   
-  EHA.settings.backup = backup
+  if backup then 
+    EHA.settings.backup = backup
+  end
+
 end
 
 -- Remove all Haies
-function EysilesHousingAnimator.removeAll()
+function EHABackup.removeAll(name)
 	EHACurrentId = GetNextPlacedHousingFurnitureId()
-  EysilesHousingAnimator.removeNext()
+  EHABackup.removeNext(name)
 end
 
-function EysilesHousingAnimator.removeNext()
+function EHABackup.removeNext(name)
 	local id = EHACurrentId
   local delay = 100
   
 	if id then
     local itemName, _, furnitureDataId = GetPlacedHousingFurnitureInfo(id)
-    if string.match(itemName, "Haie") then
+    if string.match(itemName, name) then
       HousingEditorRequestRemoveFurniture( id )
     else
       delay = 0
@@ -147,26 +121,26 @@ function EysilesHousingAnimator.removeNext()
     --HousingEditorRequestRemoveFurniture    
 		EHACurrentId = GetNextPlacedHousingFurnitureId( id )
     
-    zo_callLater( EysilesHousingAnimator.removeNext, delay )
+    zo_callLater( function() EHABackup.removeNext(name) end, delay )
 	end
 end
 
 
 -- Replace all Haies
-function EysilesHousingAnimator.placeAll()
+function EHABackup.placeAll(name)
   EHAPlacedFurnitures = {}
   EHACurrentId = GetNextPlacedHousingFurnitureId()
-  EysilesHousingAnimator.placeNext()
+  EHABackup.placeNext(name)
 end
 
-function EysilesHousingAnimator.placeNext()
+function EHABackup.placeNext(name)
   local backup = EHA.settings.backup or {}
 	local id = EHACurrentId
   local delay = 100
   
 	if id then
     local itemName, _, furnitureDataId = GetPlacedHousingFurnitureInfo(id)
-    if string.match(itemName, "Haie") then
+    if string.match(itemName, name) then
       local p = EHAPlacedFurnitures[furnitureDataId] or 0
       for i, f in pairs(backup) do
         if(p < i and f.dataId == furnitureDataId) then
@@ -178,13 +152,12 @@ function EysilesHousingAnimator.placeNext()
         end
       end
     else
-      d(itemName .. " won't be placed")
+      -- EHA.d(itemName .. " won't be placed")
       delay = 0
     end
     
     EHACurrentId = GetNextPlacedHousingFurnitureId( id )
     
-    zo_callLater( EysilesHousingAnimator.placeNext, delay )
+    zo_callLater( function() EHABackup.placeNext(name) end, delay )
 	end
 end
-

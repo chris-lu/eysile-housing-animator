@@ -1,14 +1,12 @@
 EysilesHousingAnimator.templates = EysilesHousingAnimator.templates or {}
-EysilesHousingAnimator.templates["arene"] = {}
+EysilesHousingAnimator.templates["arene"] = { animations = {}, interacts = {} }
 
-
-
-EysilesHousingAnimator.templates["arene"]["bridge"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge"] = 
 {
 	["chain"] = "bridge1",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 1182,
+	["collectible"] = 1182,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -53,12 +51,12 @@ EysilesHousingAnimator.templates["arene"]["bridge"] =
 	["animation"] = "transition",
 }
 
-EysilesHousingAnimator.templates["arene"]["bridge1"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge1"] = 
 {
 	["chain"] = "bridge2",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -130,12 +128,12 @@ EysilesHousingAnimator.templates["arene"]["bridge1"] =
 
 
 
-EysilesHousingAnimator.templates["arene"]["bridge2"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge2"] = 
 {
 	["chain"] = "bridge3",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -206,12 +204,12 @@ EysilesHousingAnimator.templates["arene"]["bridge2"] =
 }
 
 
-EysilesHousingAnimator.templates["arene"]["bridge3"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge3"] = 
 {
 	["chain"] = "bridge4",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -282,12 +280,12 @@ EysilesHousingAnimator.templates["arene"]["bridge3"] =
 }
 
 
-EysilesHousingAnimator.templates["arene"]["bridge4"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge4"] = 
 {
 	["chain"] = "bridge5",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -358,12 +356,12 @@ EysilesHousingAnimator.templates["arene"]["bridge4"] =
 }
 
 
-EysilesHousingAnimator.templates["arene"]["bridge5"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge5"] = 
 {
 	["chain"] = "bridge6",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -434,12 +432,12 @@ EysilesHousingAnimator.templates["arene"]["bridge5"] =
 }
 
 
-EysilesHousingAnimator.templates["arene"]["bridge6"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge6"] = 
 {
 	["chain"] = "bridge7",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -510,12 +508,12 @@ EysilesHousingAnimator.templates["arene"]["bridge6"] =
 }
 
 
-EysilesHousingAnimator.templates["arene"]["bridge7"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge7"] = 
 {
 	["chain"] = "bridge8",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -586,12 +584,12 @@ EysilesHousingAnimator.templates["arene"]["bridge7"] =
 }
 
 
-EysilesHousingAnimator.templates["arene"]["bridge8"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge8"] = 
 {
 	["chain"] = "bridge9",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -636,12 +634,12 @@ EysilesHousingAnimator.templates["arene"]["bridge8"] =
 	["animation"] = "transition",
 }
 
-EysilesHousingAnimator.templates["arene"]["bridge9"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge9"] = 
 {
 	["chain"] = "bridge10",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -686,12 +684,12 @@ EysilesHousingAnimator.templates["arene"]["bridge9"] =
 	["animation"] = "transition",
 }
 
-EysilesHousingAnimator.templates["arene"]["bridge10"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge10"] = 
 {
 	["chain"] = "bridge11",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -738,12 +736,12 @@ EysilesHousingAnimator.templates["arene"]["bridge10"] =
 
 
 
-EysilesHousingAnimator.templates["arene"]["bridge11"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge11"] = 
 {
 	["chain"] = "bridge12",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -790,12 +788,12 @@ EysilesHousingAnimator.templates["arene"]["bridge11"] =
 
 
 
-EysilesHousingAnimator.templates["arene"]["bridge12"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge12"] = 
 {
 	["chain"] = "bridge13",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -843,12 +841,12 @@ EysilesHousingAnimator.templates["arene"]["bridge12"] =
 
 
 
-EysilesHousingAnimator.templates["arene"]["bridge13"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge13"] = 
 {
 	["chain"] = "bridge14",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -896,12 +894,12 @@ EysilesHousingAnimator.templates["arene"]["bridge13"] =
 
 
 
-EysilesHousingAnimator.templates["arene"]["bridge14"] = 
+EysilesHousingAnimator.templates["arene"].animations["bridge14"] = 
 {
 	["chain"] = "",
 	["duration"] = 3,
 	["bounce"] = false,
-	["trigger"] = 0,
+	["collectible"] = 0,
 	["keyframe"] = 1,
 	["radius"] = 0,
 	["frame"] = 0,
@@ -952,12 +950,12 @@ EysilesHousingAnimator.templates["arene"]["bridge14"] =
 
 
 
-EysilesHousingAnimator.templates["arene"]["fire"] = 
+EysilesHousingAnimator.templates["arene"].animations["fire"] = 
 {
 	["speed"] = 1,
 	["chain"] = "",
 	["duration"] = 30,
-	["trigger"] = 353,
+	["collectible"] = 353,
 	["animation"] = "transition",
 	["rotate"] = true,
 	["durations"] = 
@@ -1003,7 +1001,7 @@ EysilesHousingAnimator.templates["arene"]["fire"] =
 }
 
 
-EysilesHousingAnimator.templates["arene"]["wall"] = 
+EysilesHousingAnimator.templates["arene"].animations["wall"] = 
 {
 	["keyframe"] = 1,
 	["loop"] = false,
@@ -1068,7 +1066,7 @@ EysilesHousingAnimator.templates["arene"]["wall"] =
 	},
 	["radius"] = 0,
 	["speed"] = 1,
-	["trigger"] = 1182,
+	["collectible"] = 1182,
 	["animation"] = "transition",
 	["duration"] = 50,
 	["frame"] = 0,

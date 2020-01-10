@@ -1,39 +1,31 @@
 ----- Eysile's Housing Animator -----
 
 # Load animation from a template
-/eha load [name]
-
+/eha a load [name]
 ie:
-/eha load akatosh
+/eha a load arene
 
 
 # Create an animation from the latest X items piled to the stack
-/eha create [name] [X]
-
+/eha a create [name] [X]
 ie:
-/eha create doors 4
+/eha a create doors 4
 
 
 # Add X other keyframes to the stack to an animation at the Y position
-/eha replace [name] [X] [Y]
-
+/eha a replace [name] [X] [Y]
 ie:
-/eha replace doors 2 3
+/eha a replace doors 2 3
 
 
 # Delete an animation
-/eha delete [name]
-
+/eha a delete [name]
 ie:
-/eha delete doors
-
-
-# Empty the item stack
-/eha empty
+/eha a delete doors
 
 
 # Set an parameter from an animation
-/eha set [name] [variable] [value]
+/eha a set [name] [variable] [value]
 
 * [variable] could be:
   trigger [ID]       The ID of a collectible to play when playing / toggling the animation
@@ -50,53 +42,71 @@ ie:
   inoutquart, outinquart, inquint, outquint, inoutquint, outinquint, insine, outsine, inoutsine, outinsine, 
   inexpo, outexpo, inoutexpo, outinexpo, incirc, outcirc, inoutcirc, outincirc, inelastic, outelastic, 
   inoutelastic, outinelastic, inback, outback, inoutback, outinback, outbounce, inbounce, inoutbounce, outinbounce
-
 ie:
-/eha set doors ease inoutcubic
+/eha a set doors ease inoutcubic
 
 
 # Reset an animation to its beginning
-/eha reset [name]
-
+/eha a reset [name]
 ie:
-/eha reset doors
+/eha a reset doors
 
 
 # Play an animation from its beginning
-/eha play [name]
-
+/eha a play [name]
 ie:
-/eha play doors
+/eha a play doors
 
 
 # Stop a playing animation
-/eha stop [name]
-
+/eha a stop [name]
 ie:
-/eha stop doors
+/eha a stop doors
 
 
 # Toggle an animation from the beginning to the end / from the end to the beginning
-/eha toggle [name]
-
+/eha a toggle [name]
 ie:
-/eha toggle doors
+/eha a toggle doors
 
 
 # List animations
-/eha list [name / all]
+/eha a list [name / all]
 
 ie:
-/eha list all
+/eha a list all
 
+# Activate objects
+/eha a activate light off
+/eha a activate light on
+
+# Create a trigger
+/eha t create [name]
+ie:
+/eha t create switch
+
+# Create a trigger
+/eha t create [name]
+ie:
+/eha t create switch
+
+# Set an parameter from a trigger
+/eha t set [name] [variable] [value]
+
+* [variable] could be:
+  commands [command] [1-9]      Define a EHA command to trigger when the object reach the state "nr"
+ie:
+/eha t set switch commands activate+gate+off 1
+/eha t set switch commands activate+gate+on 2
+
+# Empty the item stack
+/eha empty
 
 # Save the scene to the user settings
 /eha save
 
-
 # Reload the scene saved scenes
 /eha reload
-
 
 # Reload the scene
 /eha clear
