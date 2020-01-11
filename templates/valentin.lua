@@ -149,7 +149,7 @@ EysilesHousingAnimator.templates["valentin"].interacts["cristal"] =
 			["z"] = 39993,
 		},
 	},
-	["commands"] = 
+	["run"] = 
 	{
 		[1] = "a activate gate on",
 		[2] = "a activate gate off",

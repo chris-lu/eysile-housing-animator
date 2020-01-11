@@ -35,8 +35,6 @@ EysilesHousingAnimatorSettings.lua
 EysilesHousingAnimatorBackup.lua
 templates/arene.lua
 templates/valentin.lua
-#templates/akatosh.lua
-#templates/dementia.lua
-#templates/mania.lua
+templates/villa.lua
 
 bindings.xml

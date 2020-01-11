@@ -4,7 +4,7 @@ EHAInteract = { latestCommandResult = 0}
 -- Let's not use real OOP as serializeing them will lead to recursive save
 function EHAInteract:new(o)
   local o = o or {}
-  local t = { furnitures = {}, commands = {'', '', '', '', '', '', '', '', ''}}
+  local t = { furnitures = {}, run = {'', '', '', '', '', '', '', '', ''}}
   
   for k, v in pairs(o) do
     t[k] = v
@@ -30,12 +30,28 @@ function EHAInteract.setParameter(t, param, value, position)
     elseif type(t[param])  ~= "table" then
       t[param] = value
     end
-    
+
     d("Setting value of " .. param .. " to " .. tostring(t[param]))
     return t[param]
   else 
     d("Cannot set value of " .. tostring(param) .. " to " .. tostring(value))
   end
+end
+
+function EHAInteract.triggerCreate(name, number)
+  local fs = {}
+  local i = number
+  for _, f in ipairs( EHA.furnitures ) do
+      fs[i] = f
+      i = i - 1
+
+      if i < 1 then break end
+  end
+  local trigger = EHAInteract:new()
+  EHAInteract.addFurnitures(trigger, fs)
+  EHA.interacts[name] = trigger
+  
+  d("Saved trigger to " .. name .. " with " .. #fs .. " keyframes")  
 end
 
 ------------------------------------------------------------------------------
@@ -91,26 +107,72 @@ function EHAInteract.OnUpdate()
   end
 
   for name, t in pairs( EHA.interacts ) do
+    -- If multiple, all states should be saved state to trigger the action
+    local count = 0
     for furnitureId, f in pairs(t.furnitures) do
-      if f.previousState == nil then 
-        f.previousState = GetPlacedHousingFurnitureCurrentObjectStateIndex( StringToId64(f.id) )
-        EHA.d("Saving primary state")
-      else
-        local state = GetPlacedHousingFurnitureCurrentObjectStateIndex( StringToId64(f.id) )
-        EHAInteract.latestCommandResult = 0
-        if f.previousState ~= state then
-          if t.commands[state + 1] then
-            EHA.d("Trigerring command: " .. t.commands[state + 1])
-            EHA.SlashCommand(t.commands[state + 1])
-          end
-          
-          if EHAInteract.latestCommandResult == 0 then 
-            f.previousState = state
-          else
-            EHA.d('Could not set command ' .. t.commands[state + 1] .. ' (Status: ' .. tostring(EHAInteract.latestCommandResult))
-          end
+      count = count + 1 
+    end
+    
+    if count > 1 then
+      EHAInteract.handleMultiple(t)
+    else
+      EHAInteract.handleSingle(t) 
+    end
+  end
+end
+
+function EHAInteract.handleSingle(t) 
+  for furnitureId, f in pairs(t.furnitures) do
+    if f.previousState == nil then 
+      f.previousState = GetPlacedHousingFurnitureCurrentObjectStateIndex( StringToId64(f.id) )
+      EHA.d("Saving primary state")
+    else
+      local state = GetPlacedHousingFurnitureCurrentObjectStateIndex( StringToId64(f.id) )
+      EHAInteract.latestCommandResult = 0
+      if f.previousState ~= state then
+        if t.run[state + 1] then
+          EHA.d("Trigerring command from: " .. t.run[state + 1])
+          EHA.SlashCommand(t.run[state + 1])
+        end
+        
+        if EHAInteract.latestCommandResult ~= HOUSING_REQUEST_RESULT_SET_STATE_FAILED then 
+          f.previousState = state
+        else
+          EHA.d('Could execute /eha ' .. t.run[state + 1] .. ' (Status: ' .. tostring(EHAInteract.latestCommandResult))
         end
       end
+    end
+  end
+end
+
+function EHAInteract.handleMultiple(t) 
+  local correct = true
+  EHAInteract.latestCommandResult = 0
+  
+  if t.previousState == nil then 
+    t.previousState = correct
+    EHA.d("Saving primary state")
+  end
+  
+  for furnitureId, f in pairs(t.furnitures) do
+    local state = GetPlacedHousingFurnitureCurrentObjectStateIndex( StringToId64(f.id) )
+    correct = correct and (f.state == state)
+  end
+  
+  if correct ~= t.previousState then 
+    local command = 1
+    if correct then
+      command = 2
+    end
+    
+    EHAInteract.latestCommandResult = 0
+    EHA.d("Trigerring command from multiple: " .. tostring(t.run[command]))
+    EHA.SlashCommand(t.run[command])
+    
+    if EHAInteract.latestCommandResult ~= HOUSING_REQUEST_RESULT_SET_STATE_FAILED then 
+      t.previousState = correct
+    else
+      EHA.d('Could execute /eha ' .. t.run[command] .. ' (Status: ' .. tostring(EHAInteract.latestCommandResult))
     end
   end
 end
@@ -126,6 +188,6 @@ function EHAInteract.SlashCommand( options )
   end
 
   -- Trigger commands
-  if options[2] == "create"  then EHA.triggerCreate(name, tonumber(options[4]) or 1) end
+  if options[2] == "create"  then EHAInteract.triggerCreate(name, tonumber(options[4]) or 1) end
   if options[2] == "set" then for n, i in pairs( interacts ) do EHAInteract.setParameter(i, options[4], options[5], options[6]) end end
 end

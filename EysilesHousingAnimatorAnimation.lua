@@ -239,7 +239,6 @@ end
 
 function EHAAnimation.addFurnitures(a, furnitures)
   -- Group by furnitureId
-  
   for _, f in ipairs(furnitures) do
     local list = a.furnitures[f.id] or {}
     list[#list + 1] = f

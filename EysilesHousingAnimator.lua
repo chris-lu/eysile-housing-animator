@@ -227,22 +227,6 @@ function EHA.removeFurniture(furnitureId)
   d("Removed 1 furniture, total " .. #EHA.furnitures)
 end
 
-function EHA.triggerCreate(name, number)
-  local fs = {}
-  local i = number
-  for _, f in ipairs( EHA.furnitures ) do
-      fs[i] = f
-      i = i - 1
-
-      if i < 1 then break end
-  end
-  local trigger = EHATrigger:new()
-  EHATrigger.addFurnitures(trigger, fs)
-  EHA.interacts[name] = trigger
-  
-  d("Saved trigger to " .. name .. " with " .. #fs .. " keyframes")  
-end
-
 function EHA.getItemList() 
     local furnitureId = nil
 
