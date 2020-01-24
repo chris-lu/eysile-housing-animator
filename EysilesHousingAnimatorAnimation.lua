@@ -282,24 +282,31 @@ function EHAAnimation:dotransition(a, furnitureFrom, furnitureTo, duration)
   end
   
   local frame = math.min(a.frame, duration)
+  local dx = furnitureTo.x - furnitureFrom.x
+  local dy = furnitureTo.y - furnitureFrom.y
+  local dz = furnitureTo.z - furnitureFrom.z
+  local dp = furnitureTo.pitch - furnitureFrom.pitch
+  local da = furnitureTo.yaw   - furnitureFrom.yaw
+  local dr = furnitureTo.roll - furnitureFrom.roll
   
-  if not a.rotate then
+  -- HousingEditorRequestChangePositionAndOrientation is costly. We try to avoid it if necessary.
+  if not a.rotate and (frame == 0 or frame == duration or dx ~= 0 or dy ~= 0 or dz ~= 0) then
     HousingEditorRequestChangePositionAndOrientation(StringToId64(furnitureFrom.id), 
-      f(frame, furnitureFrom.x, furnitureTo.x - furnitureFrom.x, duration),
-      f(frame, furnitureFrom.y, furnitureTo.y - furnitureFrom.y, duration),
-      f(frame, furnitureFrom.z, furnitureTo.z - furnitureFrom.z, duration),
+      f(frame, furnitureFrom.x, dx, duration),
+      f(frame, furnitureFrom.y, dy, duration),
+      f(frame, furnitureFrom.z, dz, duration),
       furnitureFrom.pitch,
       furnitureFrom.yaw,
       furnitureFrom.roll
     )
-  else 
+  elseif (frame == 0 or frame == duration or dx ~= 0 or dy ~= 0 or dz ~= 0 or dp ~= 0 or da ~= 0 or dr ~= 0) then
     HousingEditorRequestChangePositionAndOrientation (StringToId64(furnitureFrom.id), 
-      f(frame, furnitureFrom.x, furnitureTo.x - furnitureFrom.x, duration),
-      f(frame, furnitureFrom.y, furnitureTo.y - furnitureFrom.y, duration),
-      f(frame, furnitureFrom.z, furnitureTo.z - furnitureFrom.z, duration),
-      f(frame, furnitureFrom.pitch, EHAMath.normalize(furnitureTo.pitch - furnitureFrom.pitch), duration),
-      f(frame, furnitureFrom.yaw,   EHAMath.normalize(furnitureTo.yaw   - furnitureFrom.yaw),   duration),
-      f(frame, furnitureFrom.roll,   EHAMath.normalize(furnitureTo.roll - furnitureFrom.roll),  duration)
+      f(frame, furnitureFrom.x, dx, duration),
+      f(frame, furnitureFrom.y, dy, duration),
+      f(frame, furnitureFrom.z, dz, duration),
+      f(frame, furnitureFrom.pitch, EHAMath.normalize(dp), duration),
+      f(frame, furnitureFrom.yaw,   EHAMath.normalize(da),   duration),
+      f(frame, furnitureFrom.roll,   EHAMath.normalize(dr),  duration)
     )
   end
   

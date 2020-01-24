@@ -1,5 +1,5 @@
 local EHA = EysilesHousingAnimator
-EHAInteract = { latestCommandResult = 0}
+EHAInteract = { callbacks = {} }
 
 -- Let's not use real OOP as serializeing them will lead to recursive save
 function EHAInteract:new(o)
@@ -56,7 +56,7 @@ end
 
 ------------------------------------------------------------------------------
 
-function EHA.ClientInteractResult( event, result, targetName )
+function EHAInteract.ClientInteractResult( event, result, targetName )
 	if result ~= CLIENT_INTERACT_RESULT_SUCCESS or nil == targetName or "" == targetName then return end
 
 	targetName = ZO_StripGrammarMarkupFromCharacterName( targetName )
@@ -68,17 +68,29 @@ function EHAInteract.ClientInteract( event, result, targetName )
   d(GetGameCameraInteractableActionInfo())
 end
 
-function EHAInteract.setState(furnitureId, state)
+function EHAInteract.setState(furnitureId, state, try)
   local prevState = GetPlacedHousingFurnitureCurrentObjectStateIndex( StringToId64(furnitureId) )
-  if(prevState == nil or prevState ~= state) then
-	  EHA.d("Changing state of " .. furnitureId .. " to " .. tostring(state))
-    EHAInteract.latestCommandResult = HousingEditorRequestChangeState( StringToId64(furnitureId), state )
+  if prevState == nil or prevState ~= state then
+    local resultCode = HousingEditorRequestChangeState( StringToId64(furnitureId), state )
+    if resultCode == HOUSING_REQUEST_RESULT_SET_STATE_FAILED then 
+      try = (try or 0) + 1
+      if try < 50 then
+        EHA.d('Could not set state of object ' .. furnitureId .. ', try ' .. tostring(try))
+        EHAInteract.callbacks[furnitureId] = function() 
+          EHAInteract.setState(furnitureId, state, try)
+        end
+      end
+    else
+      EHA.d("Changing state of " .. furnitureId .. " to " .. tostring(state))
+    end
   end
 end
 
 function EHAInteract.activate(a, state)
   for furnitureId, f in pairs(a.furnitures) do
-    EHAInteract.setState( furnitureId, state )
+    EHAInteract.callbacks[furnitureId] = function() 
+      EHAInteract.setState(furnitureId, state)
+    end
   end
 end
 
@@ -119,6 +131,12 @@ function EHAInteract.OnUpdate()
       EHAInteract.handleSingle(t) 
     end
   end
+  
+  for id, t in pairs( EHAInteract.callbacks ) do
+    local fnc = t
+    EHAInteract.callbacks[id] = nil
+    fnc();
+  end
 end
 
 function EHAInteract.handleSingle(t) 
@@ -128,18 +146,13 @@ function EHAInteract.handleSingle(t)
       EHA.d("Saving primary state")
     else
       local state = GetPlacedHousingFurnitureCurrentObjectStateIndex( StringToId64(f.id) )
-      EHAInteract.latestCommandResult = 0
       if f.previousState ~= state then
         if t.run[state + 1] then
           EHA.d("Trigerring command from: " .. t.run[state + 1])
           EHA.SlashCommand(t.run[state + 1])
         end
         
-        if EHAInteract.latestCommandResult ~= HOUSING_REQUEST_RESULT_SET_STATE_FAILED then 
-          f.previousState = state
-        else
-          EHA.d('Could execute /eha ' .. t.run[state + 1] .. ' (Status: ' .. tostring(EHAInteract.latestCommandResult))
-        end
+        f.previousState = state
       end
     end
   end
@@ -147,7 +160,6 @@ end
 
 function EHAInteract.handleMultiple(t) 
   local correct = true
-  EHAInteract.latestCommandResult = 0
   
   if t.previousState == nil then 
     t.previousState = correct
@@ -165,15 +177,12 @@ function EHAInteract.handleMultiple(t)
       command = 2
     end
     
-    EHAInteract.latestCommandResult = 0
-    EHA.d("Trigerring command from multiple: " .. tostring(t.run[command]))
-    EHA.SlashCommand(t.run[command])
-    
-    if EHAInteract.latestCommandResult ~= HOUSING_REQUEST_RESULT_SET_STATE_FAILED then 
-      t.previousState = correct
-    else
-      EHA.d('Could execute /eha ' .. t.run[command] .. ' (Status: ' .. tostring(EHAInteract.latestCommandResult))
+    if t.run[command] then
+      EHA.d("Trigerring command from multiple: " .. tostring(t.run[command]))
+      EHA.SlashCommand(t.run[command])
     end
+
+    t.previousState = correct
   end
 end
 

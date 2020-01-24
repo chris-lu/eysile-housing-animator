@@ -94,10 +94,10 @@ ie:
 /eha t set [name] [variable] [value]
 
 * [variable] could be:
-  commands [command] [1-9]      Define a EHA command to trigger when the object reach the state "nr"
+  run [command] [1-9]      Define a EHA command to trigger when the object reach the state "nr"
 ie:
-/eha t set switch commands activate+gate+off 1
-/eha t set switch commands activate+gate+on 2
+/eha t set switch run activate+gate+off 1
+/eha t set switch run activate+gate+on 2
 
 # Empty the item stack
 /eha empty

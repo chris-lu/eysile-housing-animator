@@ -1,12 +1,15 @@
-local panelData = {
-    type = "panel",
-    name = "Window Title",
-    displayName = "Longer Window Title",
-    author = "Seerah",
-    version = "1.3",
-    slashCommand = "/myaddon",	--(optional) will register a keybind to open to this panel
-    registerForRefresh = true,	--boolean (optional) (will refresh all options controls when a setting is changed and when the panel is shown)
-    registerForDefaults = true,	--boolean (optional) (will set all options controls back to default values)
+EHAUI = { 
+  prefix = 'ehaui',
+  panelData = {
+      type = "panel",
+      name = "Window Title",
+      displayName = "Longer Window Title",
+      author = "Seerah",
+      version = "1.3",
+      slashCommand = "/myaddon",	--(optional) will register a keybind to open to this panel
+      registerForRefresh = true,	--boolean (optional) (will refresh all options controls when a setting is changed and when the panel is shown)
+      registerForDefaults = true,	--boolean (optional) (will set all options controls back to default values)
+  }
 }
 
 local optionsTable = {
@@ -117,3 +120,13 @@ local optionsTable = {
 local LAM = LibStub("LibAddonMenu-2.0")
 LAM:RegisterAddonPanel("MyAddon", panelData)
 LAM:RegisterOptionControls("MyAddon", optionsTable)
+
+function EHAUI:CreateWindow()
+		oGUI.window = WINDOW_MANAGER:CreateTopLevelWindow( EHA.name .. "Wnd" )	
+		oGUI.window:SetDimensions( 100, 100 )
+		oGUI.window:SetAnchor( TOPLEFT, GuiRoot, TOPLEFT, 50, 50 )
+		oGUI.window:SetMovable( true )
+		oGUI.window:SetMouseEnabled( true )
+		oGUI.window:SetClampedToScreen( true )
+		oGUI.window:SetHidden( true )
+}
