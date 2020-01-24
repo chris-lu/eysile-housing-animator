@@ -36,5 +36,6 @@ EysilesHousingAnimatorBackup.lua
 templates/arene.lua
 templates/valentin.lua
 templates/villa.lua
+templates/moon.lua
 
 bindings.xml

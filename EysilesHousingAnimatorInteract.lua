@@ -124,14 +124,14 @@ function EHAInteract.OnUpdate()
     for furnitureId, f in pairs(t.furnitures) do
       count = count + 1 
     end
-    
+
     if count > 1 then
       EHAInteract.handleMultiple(t)
     else
       EHAInteract.handleSingle(t) 
     end
   end
-  
+
   for id, t in pairs( EHAInteract.callbacks ) do
     local fnc = t
     EHAInteract.callbacks[id] = nil
@@ -151,7 +151,7 @@ function EHAInteract.handleSingle(t)
           EHA.d("Trigerring command from: " .. t.run[state + 1])
           EHA.SlashCommand(t.run[state + 1])
         end
-        
+
         f.previousState = state
       end
     end
@@ -160,23 +160,23 @@ end
 
 function EHAInteract.handleMultiple(t) 
   local correct = true
-  
-  if t.previousState == nil then 
-    t.previousState = correct
-    EHA.d("Saving primary state")
-  end
-  
+
   for furnitureId, f in pairs(t.furnitures) do
     local state = GetPlacedHousingFurnitureCurrentObjectStateIndex( StringToId64(f.id) )
     correct = correct and (f.state == state)
   end
-  
-  if correct ~= t.previousState then 
+
+  if t.previousState == nil then
+    t.previousState = correct
+    EHA.d("Saving primary state")
+  end
+
+  if correct ~= t.previousState then
     local command = 1
     if correct then
       command = 2
     end
-    
+
     if t.run[command] then
       EHA.d("Trigerring command from multiple: " .. tostring(t.run[command]))
       EHA.SlashCommand(t.run[command])
@@ -189,7 +189,7 @@ end
 function EHAInteract.SlashCommand( options )
   local interacts = {}
   local name = options[3]
-  
+
   if name == "all" then 
     interacts = EHA.interacts
   elseif EHA.interacts[name] then
