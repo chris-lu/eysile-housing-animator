@@ -200,3 +200,46 @@ function EHAInteract.SlashCommand( options )
   if options[2] == "create"  then EHAInteract.triggerCreate(name, tonumber(options[4]) or 1) end
   if options[2] == "set" then for n, i in pairs( interacts ) do EHAInteract.setParameter(i, options[4], options[5], options[6]) end end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+function EHAInteract.HandleCombatEvent(event, actionResult, isError, abilityName, abilityGraphic, abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, shouldLog, sourceUnitId, targetUnitId, abilityId)
+  if actionResult == ACTION_RESULT_KILLING_BLOW then
+    d('ACTION_RESULT_KILLING_BLOW')
+  elseif actionResult == ACTION_RESULT_DIED then
+    d('ACTION_RESULT_DIED', targetUnitId, targetName)
+  elseif actionResult == ACTION_RESULT_PACIFIED then
+    d('ACTION_RESULT_PACIFIED')
+  elseif actionResult == ACTION_RESULT_RESURRECT then
+    d('ACTION_RESULT_RESURRECT')
+  elseif actionResult == ACTION_RESULT_TARGET_DEAD then
+    d('ACTION_RESULT_TARGET_DEAD')
+  elseif actionResult == ACTION_RESULT_BEGIN then
+    d('ACTION_RESULT_BEGIN')
+  elseif actionResult == ACTION_RESULT_IN_COMBAT then
+    d('ACTION_RESULT_IN_COMBAT')
+  elseif actionResult == ACTION_RESULT_REINCARNATING then
+    d('ACTION_RESULT_REINCARNATING')
+  else
+    -- d('Unknow: ' .. actionResult)
+  end
+  -- d(EHAFurniture:new('4616191546495175001'))
+
+end
+
+function EHAInteract.OnCombatStateChange(inCombat)
+  d('OnCombatStateChange', inCombat)
+end
+
+
+

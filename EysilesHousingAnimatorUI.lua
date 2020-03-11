@@ -1,5 +1,8 @@
+local EHA = EysilesHousingAnimator
+
 EHAUI = { 
   prefix = 'ehaui',
+  window = nil,
   panelData = {
       type = "panel",
       name = "Window Title",
@@ -12,7 +15,7 @@ EHAUI = {
   }
 }
 
-local optionsTable = {
+EHAUI.optionsTable = {
     [1] = {
         type = "header",
         name = "My Header",
@@ -118,15 +121,105 @@ local optionsTable = {
 }
 
 local LAM = LibStub("LibAddonMenu-2.0")
-LAM:RegisterAddonPanel("MyAddon", panelData)
-LAM:RegisterOptionControls("MyAddon", optionsTable)
 
 function EHAUI:CreateWindow()
-		oGUI.window = WINDOW_MANAGER:CreateTopLevelWindow( EHA.name .. "Wnd" )	
-		oGUI.window:SetDimensions( 100, 100 )
-		oGUI.window:SetAnchor( TOPLEFT, GuiRoot, TOPLEFT, 50, 50 )
-		oGUI.window:SetMovable( true )
-		oGUI.window:SetMouseEnabled( true )
-		oGUI.window:SetClampedToScreen( true )
-		oGUI.window:SetHidden( true )
-}
+		EHAUI.window = WINDOW_MANAGER:CreateTopLevelWindow( EHA.name .. "Wnd" )	
+		EHAUI.window:SetDimensions( 100, 100 )
+		EHAUI.window:SetAnchor( TOPLEFT, GuiRoot, TOPLEFT, 50, 50 )
+		EHAUI.window:SetMovable( true )
+		EHAUI.window:SetMouseEnabled( true )
+		EHAUI.window:SetClampedToScreen( true )
+		EHAUI.window:SetHidden( false )
+end
+
+function EHAUI:CreateAndAnchorWidget(parent, widgetData, offsetX, offsetY, anchorTarget, wasHalf)
+  local widget
+  local status, err = pcall(function() widget = LAMCreateControl[widgetData.type](parent, widgetData) end)
+  if not status then
+      return err or true, offsetY, anchorTarget, wasHalf
+  else
+      local isHalf = (widgetData.width == "half")
+      if not anchorTarget then -- the first widget in a panel is just placed in the top left corner
+          widget:SetAnchor(TOPLEFT)
+          anchorTarget = widget
+      elseif wasHalf and isHalf then -- when the previous widget was only half width and this one is too, we place it on the right side
+          widget.lineControl = anchorTarget
+          isHalf = false
+          offsetY = 0
+          anchorTarget = TwinOptionsContainer(parent, anchorTarget, widget)
+      else -- otherwise we just put it below the previous one normally
+          widget:SetAnchor(TOPLEFT, anchorTarget, BOTTOMLEFT, 0, 15)
+          offsetY = 0
+          anchorTarget = widget
+      end
+      return false, offsetY, anchorTarget, isHalf
+  end
+end
+
+-- EHAUI:CreateWindow()
+-- EHAUI:InitPanel(EHAUI.window, EHAUI.optionsTable)
+function EHAUI:InitPanel(panel, optionsTable)
+  
+  local THROTTLE_TIMEOUT, THROTTLE_COUNT = 10, 20
+  local fifo = {}
+  local anchorOffset, lastAddedControl, wasHalf
+  local CreateWidgetsInPanel, err
+
+  local function PrepareForNextPanel()
+      anchorOffset, lastAddedControl, wasHalf = 0, nil, false
+  end
+
+  local function SetupCreationCalls(parent, widgetDataTable)
+      fifo[#fifo + 1] = PrepareForNextPanel
+      local count = #widgetDataTable
+      for i = 1, count, THROTTLE_COUNT do
+          fifo[#fifo + 1] = function()
+              CreateWidgetsInPanel(parent, widgetDataTable, i, zo_min(i + THROTTLE_COUNT - 1, count))
+          end
+      end
+      return count ~= NonContiguousCount(widgetDataTable)
+  end
+
+  CreateWidgetsInPanel = function(parent, widgetDataTable, startIndex, endIndex)
+      for i=startIndex,endIndex do
+          local widgetData = widgetDataTable[i]
+          if not widgetData then
+              d("Skipped creation of missing entry in the settings menu of " .. addonID .. ".")
+          else
+              local widgetType = widgetData.type
+              local offsetX = 0
+              local isSubmenu = (widgetType == "submenu")
+              if isSubmenu then
+                  wasHalf = false
+                  offsetX = 5
+              end
+
+              err, anchorOffset, lastAddedControl, wasHalf = CreateAndAnchorWidget(parent, widgetData, offsetX, anchorOffset, lastAddedControl, wasHalf)
+              if err then
+                  d(("Could not create %s '%s' of %s."):format(widgetData.type, GetStringFromValue(widgetData.name or "unnamed"), addonID))
+                  if logger then
+                      logger:Error(err)
+                  end
+              end
+
+              if isSubmenu then
+                  if SetupCreationCalls(lastAddedControl, widgetData.controls) then
+                      d(("The sub menu '%s' of %s is missing some entries."):format(GetStringFromValue(widgetData.name or "unnamed"), addonID))
+                  end
+              end
+          end
+      end
+  end
+  
+  if SetupCreationCalls(panel, optionsTable) then
+    d(("The settings menu of %s is missing some entries."):format(addonID))
+  end
+        
+end
+
+function EHAUI:Debug()
+  EHAUI:CreateWindow()
+  EHAUI:InitPanel(EHAUI.window, EHAUI.optionsTable)
+  EHAUI.window:SetHidden( false )
+end
+ 

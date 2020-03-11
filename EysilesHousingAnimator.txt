@@ -33,6 +33,7 @@ EysilesHousingAnimatorAnimation.lua
 EysilesHousingAnimatorMath.lua
 EysilesHousingAnimatorSettings.lua
 EysilesHousingAnimatorBackup.lua
+EysilesHousingAnimatorUI.lua
 templates/arene.lua
 templates/valentin.lua
 templates/villa.lua
